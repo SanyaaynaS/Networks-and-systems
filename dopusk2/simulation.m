@@ -5,8 +5,15 @@ function [p_e_mean_arr, errors_dec, c_mes_control, tries] = simulation(m, snr_va
     c_mes_control = c_mes;
     
     div_mes = divide_mes(c_mes);
-    h_mes = hamming_coder(div_mes);
-    hwz_mes = delete_zeros(h_mes, addit_zeros);
+    
+    r = ceil(log2(log2(size(div_mes, 2)) + size(div_mes, 2) + 1));
+    [h, g] = hammgen(r);
+    h_mes = hamming_coder_adv(div_mes, g);
+%     h_mes = hamming_coder(div_mes);
+    
+    hwz_mes = delete_zeros_adv(h_mes, addit_zeros);
+    
+%     hwz_mes = delete_zeros(h_mes, addit_zeros);
     
     hwz_mes = hwz_mes * (-2) + 1;
     
@@ -26,7 +33,6 @@ function [p_e_mean_arr, errors_dec, c_mes_control, tries] = simulation(m, snr_va
                 number_of_mes = round(rand * (size(c_mes, 1) - 1)) + 1;
             end
             
-            
 %                 n_mes(i, :) = noise(hwz_mes(number_of_mes + i - 1, :), snr);
             num_of_conv_mes = number_of_mes + 2 * (number_of_mes - 1);
             for i = 1:3
@@ -34,11 +40,14 @@ function [p_e_mean_arr, errors_dec, c_mes_control, tries] = simulation(m, snr_va
             end
 %             n_mes = hwz_mes(num_of_conv_mes:(num_of_conv_mes + 2), :);
 
-            n_mes = n_mes < 0;
+            n_mes = double(n_mes < 0);
             
-            h_mes = add_zeros(n_mes, addit_zeros);
-            d_mes = hamming_decoder(h_mes, size(div_mes, 2));
-            u_mes = unite_mes(d_mes); 
+            h_mes = add_zeros_adv(n_mes, addit_zeros);
+%             h_mes = add_zeros(n_mes, addit_zeros);
+            d_mes = hamming_decoder_adv(h_mes, size(div_mes, 2), h);
+%             d_mes = hamming_decoder(h_mes, size(div_mes, 2));
+%             u_mes = unite_mes(d_mes); 
+            u_mes = unite_mes_adv(d_mes, r); 
 %             isequal(u_mes, c_mes(number_of_mes, :))
             [result, p_e] = check(u_mes, p, mes(number_of_mes, :), ...
                                   c_mes_control(number_of_mes, :));
