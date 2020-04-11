@@ -1,9 +1,11 @@
-function [n_mes] = hamming_decoder_adv(n_mes, orig_size, h)
-s = mod(n_mes * h', 2);
+function [n_mes] = hamming_decoder_adv(n_mes, h)
+    s = mod(n_mes * h', 2);
     for i = 1:size(s, 1)
-        err_bit = uint8(bin2dec(flip(sprintf('%d',s(i, :)))));
-        if err_bit ~= 0
-            n_mes(i, err_bit) = mod(n_mes(i, err_bit) + 1, 2);
+        for j = 1:size(h, 2)
+            if sum(xor(s(i, :), h(:, j)')) == 0
+                n_mes(i, j) = mod(n_mes(i, j) + 1, 2);
+                break
+            end
         end
     end
 end
